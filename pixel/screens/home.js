@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Text, StyleSheet, SafeAreaView, ScrollView, StatusBar} from 'react-native';
+import {Button, StyleSheet, SafeAreaView, ScrollView, StatusBar, Text} from 'react-native';
 import ColorPalette from 'react-native-color-palette'
 import ColorPicker from 'react-native-wheel-color-picker'
 import Grid from "../components/grid";
@@ -31,6 +31,7 @@ export default function Pixel(props) {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.scrollView}>
+                <Text style={styles.text}>PIXEL</Text>
                 <Grid colors={colors} update={update} />
                 <ColorPicker
                     // ref={r => {this.picker = r}}
@@ -44,6 +45,13 @@ export default function Pixel(props) {
                     //swatchesLast={this.state.swatchesLast}
                     swatches={true}
                     discrete={true}
+                    style={styles.picker}
+                />
+                <Button
+                    onPress={() => {
+                        setColors(makeArray(8))
+                    }}
+                    title="Clear"
                 />
             </ScrollView>
         </SafeAreaView>
@@ -53,9 +61,21 @@ export default function Pixel(props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: StatusBar.currentHeight,
+    },
+    text: {
+        textAlign: 'center',
+        fontWeight: 'bold',
+        margin: 10
     },
     scrollView: {
         marginHorizontal: 20,
     },
+    picker: {
+        flex: 1,
+        borderWidth: 4,
+        borderColor: '#CCCCCC',
+        padding: 20,
+        marginTop: 10,
+        marginBottom: 10
+    }
 });

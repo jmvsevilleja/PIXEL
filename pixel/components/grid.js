@@ -14,8 +14,7 @@ export default function Grid(props) {
 }
 const styles = StyleSheet.create({
     grid: {
-        borderWidth: 1,
+        borderWidth: 4,
         borderColor: '#CCCCCC'
-
     },
 });
