@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {Button, StyleSheet, SafeAreaView, ScrollView, StatusBar, Text} from 'react-native';
-import ColorPalette from 'react-native-color-palette'
 import ColorPicker from 'react-native-wheel-color-picker'
 import Grid from "../components/grid";
 
