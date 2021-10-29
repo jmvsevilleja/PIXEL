@@ -1,80 +1,131 @@
-import React, {useState} from 'react';
-import {Button, StyleSheet, SafeAreaView, ScrollView, StatusBar, Text} from 'react-native';
-import ColorPicker from 'react-native-wheel-color-picker'
-import Grid from "../components/grid";
+import React, {useEffect, useReducer, useState} from 'react';
+import {
+  ActivityIndicator,
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView
+} from 'react-native';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {DeviceCard} from '../components/DeviceCard';
+import {BleManager, Device} from 'react-native-ble-plx';
 
-const makeArray = size => {
-    return Array(size).fill(Array(size).fill("#FFFFFF"));
+const manager = new BleManager();
+
+// Reducer to add only the devices which have not been added yet
+// When the bleManager search for devices, each time it detect a ble device, it returns the ble device even if this one has already been returned
+const reducer = (
+  state,
+  action,
+) => {
+  switch (action.type) {
+    case 'ADD_DEVICE':
+      const {payload: device} = action;
+      // check if the detected device is not already added to the list
+      if (device && !state.find((dev) => dev.id === device.id)) {
+        return [...state, device];
+      }
+      return state;
+    case 'CLEAR':
+      return [];
+    default:
+      return state;
+  }
 };
 
-export default function Pixel(props) {
+export default function HomeScreen() {
+  // reducer to store and display detected ble devices
+  const [scannedDevices, dispatch] = useReducer(reducer, []);
 
-    // store the selected color in state
-    const [selected, setSelected] = useState('#FF0000');
+  // state to give the user a feedback about the manager scanning devices
+  const [isLoading, setIsLoading] = useState(false);
 
-    // store the array of colors in state
-    const [colors, setColors] = useState(makeArray(8));
+  const scanDevices = () => {
+    // display the Activityindicator
+    setIsLoading(true);
 
-    const update = (x, y) => {
-        const newArray = [...colors].map((row, index) => {
-            // copy so it wont affect the other rows
-            let newRow = [...row];
-            if (index === y) {
-                newRow.splice(x, 1, selected);
-            }
-            return newRow;
-        });
-        setColors(newArray);
+    // scan devices
+    manager.startDeviceScan(null, null, (error, scannedDevice) => {
+      if (error) {
+        console.warn(error);
+      }
+
+      // if a device is detected add the device to the list by dispatching the action into the reducer
+      if (scannedDevice) {
+        dispatch({type: 'ADD_DEVICE', payload: scannedDevice});
+      }
+    });
+
+    // stop scanning devices after 5 seconds
+    setTimeout(() => {
+      manager.stopDeviceScan();
+      setIsLoading(false);
+    }, 5000);
+  };
+
+  const ListHeaderComponent = () => (
+    <View style={styles.body}>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Step One</Text>
+      </View>
+      <View style={styles.sectionContainer}>
+        <Button
+          title="Clear devices"
+          onPress={() => dispatch({type: 'CLEAR'})}
+        />
+        {isLoading ? (
+          <View style={styles.activityIndicatorContainer}>
+            <ActivityIndicator color={'teal'} size={25} />
+          </View>
+        ) : (
+          <Button title="Scan devices" onPress={scanDevices} />
+        )}
+      </View>
+    </View>
+  );
+
+  useEffect(() => {
+    return () => {
+      manager.destroy();
     };
-
-    return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.scrollView}>
-                <Text style={styles.text}>PIXEL</Text>
-                <Grid colors={colors} update={update} />
-                <ColorPicker
-                    // ref={r => {this.picker = r}}
-                    color={selected}
-                    swatchesOnly={false}
-                    onColorChangeComplete={setSelected}
-                    thumbSize={30}
-                    sliderSize={30}
-                    noSnap={true}
-                    row={false}
-                    //swatchesLast={this.state.swatchesLast}
-                    swatches={true}
-                    discrete={true}
-                    style={styles.picker}
-                />
-                <Button
-                    onPress={() => {
-                        setColors(makeArray(8))
-                    }}
-                    title="Clear"
-                />
-            </ScrollView>
-        </SafeAreaView>
-    )
-}
+  }, []);
+  return (
+    <SafeAreaView style={styles.body}>
+      <FlatList
+        keyExtractor={(item) => item.id}
+        data={scannedDevices}
+        renderItem={({item}) => <DeviceCard device={item} />}
+        ListHeaderComponent={ListHeaderComponent}
+        contentContainerStyle={styles.content}
+      />
+    </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    text: {
-        textAlign: 'center',
-        fontWeight: 'bold',
-        margin: 10
-    },
-    scrollView: {
-        marginHorizontal: 20,
-    },
-    picker: {
-        flex: 1,
-        borderWidth: 4,
-        borderColor: '#CCCCCC',
-        padding: 20,
-        marginTop: 10,
-        marginBottom: 10
-    }
+  body: {
+    backgroundColor: Colors.red,
+  },
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.black,
+  },
+  sectionDescription: {
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: '400',
+    color: Colors.dark,
+  },
+  content: {
+    backgroundColor: 'white',
+    paddingHorizontal: 8 * 2,
+  },
+  activityIndicatorContainer: {marginVertical: 6},
 });

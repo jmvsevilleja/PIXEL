@@ -1,8 +1,14 @@
 import React from 'react';
-import Home from './screens/home'
+import Pixel from './screens/Pixel'
+import Home from './screens/Home'
+import Device from './screens/Device'
 
 export default function App(props) {
   return (
-    <Home></Home>
+    <>
+      {/* <Pixel /> */}
+      {/* <Device /> */}
+      <Home />
+    </>
   );
 };

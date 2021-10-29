@@ -8,3 +8,7 @@ npx react-native init pixel
 ```
 npx react-native run-android --variant=release
 ```
+## BLE LE
+```
+https://dotintent.github.io/react-native-ble-plx/
+```
